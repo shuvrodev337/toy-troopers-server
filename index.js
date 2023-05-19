@@ -38,6 +38,12 @@ app.get("/", (req, res) => {
       const result = await toyCollection.insertOne(toy)
       res.send(result)
     })
+    app.get("/toys", async(req,res)=>{
+        const cursor = toyCollection.find()
+        const result = await  cursor.toArray()
+        res.send(result)
+    })
+    
 
 
 
