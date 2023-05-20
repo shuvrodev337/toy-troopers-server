@@ -3,7 +3,7 @@ const app = express();
 require('dotenv').config()
 const cors = require("cors");
 const port = process.env.PORT || 3000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 //Middleware
 app.use(cors());
 app.use(express.json())
@@ -38,11 +38,15 @@ app.get("/", (req, res) => {
       const result = await toyCollection.insertOne(toy)
       res.send(result)
     })
+
+    // Load All toys
     app.get("/toys", async(req,res)=>{
         const cursor = toyCollection.find()
         const result = await  cursor.toArray()
         res.send(result)
     })
+
+    // Load User specific toys
     app.get("/mytoys", async(req,res)=>{
       let query = {}
       if (req.query?.email) {
@@ -53,6 +57,13 @@ app.get("/", (req, res) => {
       res.send(result)
     })
     
+    // Read One document
+    app.get('/updatetoy/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}  
+      const result = await toyCollection.findOne(query);
+      res.send(result);
+  })
 
 
 
