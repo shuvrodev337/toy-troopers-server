@@ -43,6 +43,15 @@ app.get("/", (req, res) => {
         const result = await  cursor.toArray()
         res.send(result)
     })
+    app.get("/mytoys", async(req,res)=>{
+      let query = {}
+      if (req.query?.email) {
+        query = {sellerEmail: req.query.email}
+      }
+      const result = await toyCollection.find(query).toArray()
+
+      res.send(result)
+    })
     
 
 
