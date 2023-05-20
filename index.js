@@ -62,7 +62,7 @@ async function run() {
       const result = await toyCollection.findOne(query);
       res.send(result);
     });
-    // Update the toy
+    // Update toy
     app.put("/updatetoy/:id", async (req, res) => {
       const id = req.params.id;
       const updatedToy = req.body;
@@ -86,6 +86,14 @@ async function run() {
       const result = await toyCollection.updateOne(filter, toy, options);
       res.send(result);
     });
+
+    // Delete toy
+    app.delete('/toy/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await toyCollection.deleteOne(query);
+      res.send(result);
+  })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
