@@ -5,7 +5,22 @@ const cors = require("cors");
 const port = process.env.PORT || 3000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 //Middleware
-app.use(cors());
+// app.use(cors());
+// const corsConfig = {
+//   origin: "",
+//   credentials: true,
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+// };
+// app.use(cors(corsConfig));
+// app.options("", cors(corsConfig));
+const corsOptions ={
+  origin:'*', 
+  credentials:true,
+  optionSuccessStatus:200,
+}
+
+app.use(cors(corsOptions))
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -29,13 +44,9 @@ async function run() {
     // await client.connect();
 
     const toyCollection = client.db("toyDB").collection("toys");
-
-    app.post("/toys", async (req, res) => {
-      const toy = req.body;
-      console.log(toy);
-      const result = await toyCollection.insertOne(toy);
-      res.send(result);
-    });
+    const actionFigureCollection = client
+      .db("toyDB")
+      .collection("actionFigures");
 
     // Load All toys
     app.get("/toys", async (req, res) => {
@@ -43,6 +54,11 @@ async function run() {
       const result = await cursor.limit(20).toArray();
       res.send(result);
     });
+
+    
+
+   
+
     //Get A toy By id
     app.get("/toy/:id", async (req, res) => {
       const id = req.params.id;
@@ -51,6 +67,19 @@ async function run() {
       res.send(result);
     });
 
+
+    // Get toys by category
+
+    app.get("/toysCategory/:category", async (req, res) => {
+      const toys = await toyCollection
+        .find({
+          subCategory: req.params.category,
+        })
+        .toArray();
+      res.send(toys);
+    });
+
+
     // Load User specific toys
     app.get("/mytoys", async (req, res) => {
       let query = {};
@@ -58,21 +87,20 @@ async function run() {
         query = { sellerEmail: req.query.email };
       }
       if (req.query?.sort) {
- 
         const sortStyle = req.query.sort;
         if (sortStyle == "ascending") {
           const result = await toyCollection
             .find(query)
             .sort({ price: 1 })
-            .collation({locale:"en_US",numericOrdering:true})
+            .collation({ locale: "en_US", numericOrdering: true })
             .toArray();
-          
+
           return res.send(result);
         } else if (sortStyle == "descending") {
           const result = await toyCollection
             .find(query)
             .sort({ price: -1 })
-            .collation({locale:"en_US",numericOrdering:true})
+            .collation({ locale: "en_US", numericOrdering: true })
             .toArray();
           return res.send(result);
         }
@@ -87,6 +115,12 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await toyCollection.findOne(query);
+      res.send(result);
+    });
+    app.post("/toys", async (req, res) => {
+      const toy = req.body;
+      console.log(toy);
+      const result = await toyCollection.insertOne(toy);
       res.send(result);
     });
     // Update toy
@@ -121,18 +155,13 @@ async function run() {
       const result = await toyCollection.deleteOne(query);
       res.send(result);
     });
-
-    // Get toys by category
-
-    app.get("/toysCategory/:category", async (req, res) => {
-      // console.log(req.params.category);
-      const toys = await toyCollection
-        .find({
-          subCategory: req.params.category,
-        })
-        .toArray();
-      res.send(toys);
+    // Load All Action Figures
+    app.get("/actionFigures", async (req, res) => {
+      const cursor = actionFigureCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
     });
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
