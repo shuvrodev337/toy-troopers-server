@@ -43,6 +43,13 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+    //Get A toy By id
+    app.get("/toy/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await toyCollection.findOne(query);
+      res.send(result);
+    });
 
     // Load User specific toys
     app.get("/mytoys", async (req, res) => {
@@ -94,6 +101,18 @@ async function run() {
       const result = await toyCollection.deleteOne(query);
       res.send(result);
   })
+
+  // Get toys by category
+
+  app.get("/toysCategory/:category", async (req, res) => {
+    console.log(req.params.category);
+    const toys = await toyCollection
+      .find({
+        subCategory: req.params.category,
+      })
+      .toArray();
+    res.send(toys);
+  });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
