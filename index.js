@@ -40,7 +40,7 @@ async function run() {
     // Load All toys
     app.get("/toys", async (req, res) => {
       const cursor = toyCollection.find();
-      const result = await cursor.toArray();
+      const result = await cursor.limit(20).toArray();
       res.send(result);
     });
     //Get A toy By id
@@ -56,6 +56,26 @@ async function run() {
       let query = {};
       if (req.query?.email) {
         query = { sellerEmail: req.query.email };
+      }
+      if (req.query?.sort) {
+ 
+        const sortStyle = req.query.sort;
+        if (sortStyle == "ascending") {
+          const result = await toyCollection
+            .find(query)
+            .sort({ price: 1 })
+            .collation({locale:"en_US",numericOrdering:true})
+            .toArray();
+          
+          return res.send(result);
+        } else if (sortStyle == "descending") {
+          const result = await toyCollection
+            .find(query)
+            .sort({ price: -1 })
+            .collation({locale:"en_US",numericOrdering:true})
+            .toArray();
+          return res.send(result);
+        }
       }
       const result = await toyCollection.find(query).toArray();
 
@@ -73,7 +93,7 @@ async function run() {
     app.put("/updatetoy/:id", async (req, res) => {
       const id = req.params.id;
       const updatedToy = req.body;
-      const filter = {_id: new ObjectId(id)}
+      const filter = { _id: new ObjectId(id) };
 
       const options = { upsert: true };
       const toy = {
@@ -87,7 +107,7 @@ async function run() {
           rating: updatedToy.rating,
           availableQuantity: updatedToy.availableQuantity,
           detailDescription: updatedToy.detailDescription,
-        }
+        },
       };
 
       const result = await toyCollection.updateOne(filter, toy, options);
@@ -95,24 +115,24 @@ async function run() {
     });
 
     // Delete toy
-    app.delete('/toy/:id', async (req, res) => {
+    app.delete("/toy/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
+      const query = { _id: new ObjectId(id) };
       const result = await toyCollection.deleteOne(query);
       res.send(result);
-  })
+    });
 
-  // Get toys by category
+    // Get toys by category
 
-  app.get("/toysCategory/:category", async (req, res) => {
-    console.log(req.params.category);
-    const toys = await toyCollection
-      .find({
-        subCategory: req.params.category,
-      })
-      .toArray();
-    res.send(toys);
-  });
+    app.get("/toysCategory/:category", async (req, res) => {
+      // console.log(req.params.category);
+      const toys = await toyCollection
+        .find({
+          subCategory: req.params.category,
+        })
+        .toArray();
+      res.send(toys);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
